@@ -35,7 +35,7 @@ const resolveApiUrl = () => {
     }
   }
   if (Platform.OS === "android") {
-    return "http://172.16.247.54:8080";
+    return "https://leaderboard-go.vercel.app";
   }
   return "http://localhost:8080";
 };
