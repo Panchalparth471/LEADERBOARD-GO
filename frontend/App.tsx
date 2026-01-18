@@ -180,6 +180,7 @@ export default function App() {
   const [boardPage, setBoardPage] = useState(1);
   const [boardTotalPages, setBoardTotalPages] = useState(0);
   const [boardPageSize, setBoardPageSize] = useState(LEADERBOARD_PAGE_SIZE);
+  const hasLeaderboardRef = useRef(false);
 
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Entry[]>([]);
@@ -256,7 +257,9 @@ export default function App() {
 
     const loadLeaderboard = async () => {
       try {
-        setLeaderboardLoading(true);
+        if (!hasLeaderboardRef.current) {
+          setLeaderboardLoading(true);
+        }
         const res = await fetchWithTimeout(
           `${API_URL}/leaderboard?limit=${LEADERBOARD_PAGE_SIZE}&page=${boardPage}`
         );
@@ -276,6 +279,7 @@ export default function App() {
         if (data.page && data.page !== boardPage) {
           setBoardPage(data.page);
         }
+        hasLeaderboardRef.current = true;
         setLeaderboardError(null);
       } catch (err) {
         if (!active) return;
@@ -597,8 +601,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 88,
-    paddingTop: 28,
+    paddingBottom: 96,
+    paddingTop: 32,
     gap: 18,
   },
   headerCard: {

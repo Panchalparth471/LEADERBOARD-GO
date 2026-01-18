@@ -83,6 +83,24 @@ Search:
 - Leaderboard reads use a snapshot refreshed on a timer, so they are fast and non-blocking.
 - Snapshot stores sorted user IDs (not full payloads) to keep memory usage reasonable.
 
+## Vercel Deployment
+
+This backend is prepared for Vercel serverless functions.
+
+Steps:
+
+1) In Vercel, set the project root to `backend`.
+2) Framework preset: "Other".
+3) Build command: leave empty.
+4) Output directory: leave empty.
+5) (Optional) Set environment variables like `SEED_USERS`, `UPDATES_PER_TICK`, `TICK_MS`, `SNAPSHOT_MS`.
+6) Deploy.
+
+Notes:
+
+- `backend/vercel.json` rewrites all routes to the Go function, so `/leaderboard` and `/search` work at the root URL.
+- The dataset is in memory; a cold start will rebuild it.
+
 ## Troubleshooting
 
 - If the frontend cannot connect, confirm the server is running and your device can reach the host and port.

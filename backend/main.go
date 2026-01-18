@@ -78,6 +78,27 @@ type Store struct {
 	snapshot   atomic.Value
 }
 
+type app struct {
+	store   *Store
+	handler http.Handler
+}
+
+var (
+	appOnce     sync.Once
+	appInstance *app
+)
+
+func getApp() *app {
+	appOnce.Do(func() {
+		appInstance = buildApp()
+	})
+	return appInstance
+}
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	getApp().handler.ServeHTTP(w, r)
+}
+
 func NewStore(seeds []SeedUser) *Store {
 	ratingRange := maxRating - minRating + 1
 	store := &Store{
@@ -417,19 +438,17 @@ func generateUsers(count int) []SeedUser {
 	return users
 }
 
-func main() {
+func buildApp() *app {
 	seedUsers := getEnvInt("SEED_USERS", 10000)
 	updatesPerTick := getEnvInt("UPDATES_PER_TICK", 200)
 	tickMs := getEnvInt("TICK_MS", 200)
 	snapshotMs := getEnvInt("SNAPSHOT_MS", 1000)
-	port := getEnvString("PORT", "8080")
 
 	seeds := generateUsers(seedUsers)
 	store := NewStore(seeds)
 	store.RefreshSnapshot()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 	go store.StartRandomUpdates(ctx, updatesPerTick, tickMs)
 	go store.StartSnapshotLoop(ctx, snapshotMs)
 
@@ -492,13 +511,25 @@ func main() {
 		writeJSON(w, http.StatusOK, response)
 	})
 
+	handler := withCORS(stripAPIPrefix(mux))
+
+	return &app{
+		store:   store,
+		handler: handler,
+	}
+}
+
+func main() {
+	port := getEnvString("PORT", "8080")
+	app := getApp()
+
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           withCORS(mux),
+		Handler:           app.handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Printf("leaderboard server running on :%s (users=%d)\n", port, store.UserCount())
+	log.Printf("leaderboard server running on :%s (users=%d)\n", port, app.store.UserCount())
 	if err := server.ListenAndServe(); err != nil && !strings.Contains(err.Error(), "Server closed") {
 		log.Fatal(err)
 	}
@@ -587,6 +618,22 @@ func withCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Max-Age", "600")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func stripAPIPrefix(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api") {
+			clone := r.Clone(r.Context())
+			trimmed := strings.TrimPrefix(clone.URL.Path, "/api")
+			if trimmed == "" {
+				trimmed = "/"
+			}
+			clone.URL.Path = trimmed
+			next.ServeHTTP(w, clone)
 			return
 		}
 		next.ServeHTTP(w, r)
