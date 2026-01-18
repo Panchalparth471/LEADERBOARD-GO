@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	backend "matiks_app/backend"
+	"matiks_app/backend/leaderboard"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	backend.Handler(w, r)
+	leaderboard.Handler(w, r)
 }

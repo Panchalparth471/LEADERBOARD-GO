@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"matiks_app/backend"
+	"matiks_app/backend/leaderboard"
 )
 
 func main() {
-	if err := backend.StartServer(); err != nil {
+	if err := leaderboard.StartServer(); err != nil {
 		log.Fatal(err)
 	}
 }
