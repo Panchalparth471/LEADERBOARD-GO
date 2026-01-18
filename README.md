@@ -6,7 +6,7 @@ Backend (Golang) and frontend (Expo React Native) for a large-scale leaderboard 
 
 ```powershell
 cd backend
-go run ./cmd/server
+go run -tags dev .
 ```
 
 ## Frontend
