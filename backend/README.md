@@ -16,7 +16,7 @@ In-memory leaderboard service built for correctness under scale. Rankings are ti
 
 ```powershell
 cd backend
-go run .
+go run ./cmd/server
 ```
 
 The server listens on `http://localhost:8080` by default.
@@ -100,6 +100,7 @@ Notes:
 
 - `backend/vercel.json` rewrites all routes to the Go function, so `/leaderboard` and `/search` work at the root URL.
 - The dataset is in memory; a cold start will rebuild it.
+- For local development, use `go run ./cmd/server`.
 
 ## Troubleshooting
 

@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"context"
@@ -519,7 +519,7 @@ func buildApp() *app {
 	}
 }
 
-func main() {
+func StartServer() error {
 	port := getEnvString("PORT", "8080")
 	app := getApp()
 
@@ -531,8 +531,9 @@ func main() {
 
 	log.Printf("leaderboard server running on :%s (users=%d)\n", port, app.store.UserCount())
 	if err := server.ListenAndServe(); err != nil && !strings.Contains(err.Error(), "Server closed") {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func clampRating(value int) int {
