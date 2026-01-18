@@ -1,9 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.go": {
-      "runtime": "vercel-go@1.0.0"
-    }
+    "api/**/*.go": {}
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/$1" }
